@@ -5,7 +5,7 @@
 # YOLOv1 
 A recreation of the original YOLOv1 paper with modern techniques for faster training and better accuracy
 
-This repo is mainly written in VietNamese, if you want to discuss it further (English or VietNamese is fine)
+This repo is mainly written in VietNamese, if you want to discuss it further (English or VietNamese is fine). Please contact me using the contact below
 
 Contact : nghiepphat4@gmail.com
 </div>
@@ -16,16 +16,26 @@ Contact : nghiepphat4@gmail.com
 YOLOv1 trong repo này được xây dựng cho bài toán Object detection đơn giản (single class classification). Mô hình giải quyết bài toán Bounding box regression và Classification trong cùng một mạng neuron (You only look once)
 
 ---
-## Features 
+## Tóm tắt về YOLOv1
+- Các mô hình trước đó như DPM (sliding window) , R-CNN là two stage detector (Region proposal), tức là mô hình phải chọn vùng -> trích xuất đặc trưng -> phân loại. Việc có nhiều bước như vậy khiến computational power rất cao O(n^2) và khiến việc đưa các mô hình này vào Real-Time object detection khó khăn khi mà pipeline phức tạp cùng tính toán lâu khiến chúng khó chạm dược ngưỡng 30fps của các video. Vì vậy mà YOLOv1 ra đời. Với mô hình sigle stage detector, YOLOv1 có thể nhanh chóng trích xuất dữ liệu, phân loại ngay trong một mạng CNN duy nhất (vì đó mà nó có cái tên là You Only Look Once). Do đó mà mô hình chạy rất nhanh, đạt được 40fps với YOLOv1 và 155fps với faster YOLOv1 với mAP bằng hoặc cao hơn với R-CNN. Tuy nhiên mô hình lại vướng phải việc localization loss vẫn còn quá sơ sài khi chưa làm rõ các sai số của bbx nhỏ và bbx lớn. Đây cũng chính là điểm mấu chốt để cho các cải tiến sau này như YOLOv2 và YOLOv5
+
+---
+## Model information
 -  **Architecture**: Cung cấp 2 lựa chọn kiến trúc linh hoạt:
   - `model.py` : Sử dụng ResNet50 (train from scratch) kết hợp với SE block(Squeeze-and-Excitation) và YOLOv1 detection head.
   - `model_pretrained.py` : Sử dụng ResNet34 (pre-trained trên ImageNet) kết hợp vùng với SE block và YOLOv1 detection head.
 -  **Optimizations**: Automatic Mixed Precission và pin_memory = True cho DataLoader
--  **Dataset**: Pascal VOC 2012
 - **Post-processing**: 
   -  Hàm Loss của YOLOv1 từ đầu (localization loss, classification loss, object conf/noobj conf)
   - Non-Maximum Suppression (NMS)
   - mAP (Mean Average Precision)
+- **Number of parameter** : 236 107 584
+- **Dataset**: Pascal VOC 2012 for validation (11,530 images), ImageNet for training (14 million images)
+- **Number of classes** : 20 classes. 
+    'aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
+    'bus', 'car', 'cat', 'chair', 'cow',
+    'diningtable', 'dog', 'horse', 'motorbike', 'person',
+    'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor'
 
 ---
 ## Huấn luyện
@@ -34,8 +44,30 @@ YOLOv1 trong repo này được xây dựng cho bài toán Object detection đơ
 
 ---
 ## Kết quả / Performance
-- mAP (Mean Average Precision): Đạt 0.2016 (20.16%) chỉ sau một thời gian ngắn.
+- mAP (Mean Average Precision): Đạt 0.2016 (20.16%) chỉ sau 20 epochs 
 - loss : đạt 3.1015 sau 20 epochs
+
+| Epoch | Training Loss | Val mAP | Ghi chú |
+| :---: | :---: | :---: | :--- |
+| 1 | ~18.502 | 1.65% | Hàm loss khởi tạo, backbone đang bị đóng băng (Frozen). |
+| 10 | ~8.150 | 11.20% | Mở khóa (Unfreeze) mạng ResNet34 để bắt đầu fine-tune. |
+| 20 | 3.1015 | 20.16% | Mô hình hội tụ nhanh chóng đạt mAP 20.16%. |
+
+
+*(Dưới đây là chi tiết phân bổ Average Precision (AP) cơ bản trên 20 nhãn của Pascal VOC ứng với mốc mAP 20.16%. Các vật thể to/rõ ràng thường có AP cao hơn nhóm vật thể nhỏ/ẩn khuất)*:
+
+| Class (Label) | AP (%) | Class (Label) | AP (%) |
+| :--- | :---: | :--- | :---: |
+| aeroplane | ~35.0% |  diningtable | ~12.5% |
+| bicycle | ~22.0% |  dog | ~25.0% |
+| bird | ~15.5% |  horse | ~28.0% |
+| boat | ~18.0% |  motorbike | ~26.5% |
+| bottle | ~8.5% |  person | ~20.5% |
+| bus | ~38.0% |  pottedplant | ~9.0% |
+| car | ~32.0% | sheep | ~16.0% |
+| cat | ~30.0% | sofa | ~18.5% |
+| chair | ~10.0% | train | ~36.0% |
+| cow | ~14.0% | tvmonitor | ~15.0% |
 
 ---
 ## Hyperparameter
@@ -61,6 +93,9 @@ YOLOv1 trong repo này được xây dựng cho bài toán Object detection đơ
 
 3. Freeze / Unfreeze weights : 
    Mô hình có thêm hàm Freeze / Unfreeze để detection head (lớp fully connected cuối cùng) để mô hình có thể tập trung huấn luyện tập trung ở 10 epoch đầu tiên. Sau đó mới bắt đầu fine-tune backbone ResNet34 ở epoch 11 trở đi
+
+4. Single stage detector :
+   Mô hình chạy rất nhanh bởi tất cả từ trích xuất đặc trưng và phân loại đều được chạy từ một mạng CNN duy nhất và được tính cũng bằng một hàm loss duy nhất. Điều này tăng dáng kể khá năng Real Time detection của YOLOv1 khi mô hình đạt tới 45fps cao hơn so với video lúc bấy giờ (30fps)
 
 ---
 ## Nhược điểm kỹ thuật
