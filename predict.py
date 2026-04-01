@@ -31,7 +31,7 @@ def predict(image_path, model_path="best_yolo_model.pth"):
     print(f"DEBUG: Maximum confidence score predicted by model: {max_prob:.4f}")
     
     # Lower threshold to see if ANY boxes are being generated
-    final_boxes = NMS(bboxes_list, iou_threshold=0.5, threshold=0.05)
+    final_boxes = NMS(bboxes_list, iou_threshold=0.5, threshold=0.4)
     print(f"DEBUG: Number of boxes after NMS: {len(final_boxes)}")
 
     # Draw boxes

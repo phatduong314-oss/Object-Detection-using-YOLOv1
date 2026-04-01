@@ -85,3 +85,5 @@ if __name__ == "__main__":
     model = model.to(memory_format=torch.channels_last)
     x = torch.randn((2, 3, 448, 448)).to(device) 
     out = model(x)
+
+    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
