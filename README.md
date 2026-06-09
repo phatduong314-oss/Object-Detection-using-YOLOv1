@@ -51,7 +51,9 @@ YOLOv1 trong repo này được xây dựng cho bài toán Object detection đơ
 | :---: | :---: | :---: | :--- |
 | 1 | ~18.502 | 1.65% | Hàm loss khởi tạo, backbone đang bị đóng băng (Frozen). |
 | 10 | ~8.150 | 11.20% | Mở khóa (Unfreeze) mạng ResNet34 để bắt đầu fine-tune. |
-| 20 | 3.1015 | 20.16% | Mô hình hội tụ nhanh chóng đạt mAP 20.16%. |
+| 20 | 3.1015 | 20.16% | Hết 20 Epochs đầu (No Augmentation). |
+| 57 | 1.8512 | 34.35% | Tích hợp **Albumentations** (Shift, Scale, ColorJitter) + **Gradient Accumulation (64)**. mAP đột biến ấn tượng. |
+| 125 | ~1.1200 | 38.89% | Đạt mAP cao nhất ở Epoch 125 sau khi fine-tune hoàn toàn với LR giảm dần. |
 
 
 *(Dưới đây là chi tiết phân bổ Average Precision (AP) cơ bản trên 20 nhãn của Pascal VOC ứng với mốc mAP 20.16%. Các vật thể to/rõ ràng thường có AP cao hơn nhóm vật thể nhỏ/ẩn khuất)*:
