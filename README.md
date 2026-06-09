@@ -72,6 +72,24 @@ YOLOv1 trong repo này được xây dựng cho bài toán Object detection đơ
 | cow | ~14.0% | tvmonitor | ~15.0% |
 
 ---
+## So sánh hiệu suất & Tối ưu hóa phần cứng
+
+### 1. Bảng so sánh phần cứng và môi trường tính toán
+
+| Tiêu chí | Cấu hình dự án này (RTX 4050 Laptop) | Mô hình YOLOv1 gốc (GTX Titan X) |
+| :--- | :--- | :--- |
+| **Kiến trúc GPU** | Ada Lovelace (4nm) - Ra mắt 2023 | Maxwell (28nm) - Ra mắt 2015 |
+| **Sức mạnh tính toán FP32** | ~9.0 TFLOPS (ở mức TGP trung bình) | ~7.0 TFLOPS |
+| **Sức mạnh Tensor Cores** | ~80+ TFLOPS (Nhờ Tensor Cores thế hệ 4) | Không có (Chỉ tính toán bằng nhân CUDA thông thường) |
+| **Bộ nhớ VRAM** | 6 GB GDDR6 | 12 GB GDDR5 |
+| **Băng thông bộ nhớ** | ~192 GB/s | ~336 GB/s |
+| **Kiểu dữ liệu tính toán** | FP16 / Mixed Precision (AMP) | FP32 (Single Precision) |
+
+### 2. Tối ưu quy trình huấn luyện
+- **Triển khai mô hình 236 triệu tham số trên GPU RTX 4050 Laptop (6GB VRAM, bandwidth 192 GB/s)**: Tích hợp **AMP (Automatic Mixed Precision)** để tận dụng **Tensor Cores (FP16)** giúp tăng tốc độ tính toán lên 2-4 lần và tiết kiệm 50% dung lượng VRAM tiêu thụ so với định dạng FP32 chuẩn (~9 TFLOPS FP32).
+- **Giả lập Batch Size**: Sử dụng kỹ thuật tích lũy gradient (Gradient Accumulation với 8 bước tích lũy) để giả lập kích thước batch size = 64 của bài báo gốc, giúp tối ưu hóa bộ nhớ và chạy ổn định trên các GPU có dung lượng VRAM giới hạn.
+
+---
 ## Hyperparameter
 - Image size : 448x448
 - Reduction : 16 (từ bài báo gốc của SE Net)
